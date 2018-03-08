@@ -10,13 +10,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "chatXMPPdemo/Controllers/XMPPSendMessageViewController.swift"
-            timestampString = "542153130.796625"
+            timestampString = "542213892.108398"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "206"
             endingLineNumber = "206"
-            landmarkName = "xmppIncomingFileTransfer(_:didSucceedWith:named:)"
-            landmarkType = "7">
+            landmarkName = "XMPPSendMessageViewController"
+            landmarkType = "21">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -538,12 +538,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "chatXMPPdemo/Controllers/XMPPSendMessageViewController.swift"
-            timestampString = "542153130.7977051"
+            timestampString = "542213892.10886"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "141"
             endingLineNumber = "141"
-            landmarkName = "sendingPathAudioTransferFile()"
+            landmarkName = "btnSendVoicePressed()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -554,12 +554,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "chatXMPPdemo/Controllers/XMPPSendMessageViewController.swift"
-            timestampString = "542153130.7980061"
+            timestampString = "542213892.1089081"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "144"
             endingLineNumber = "144"
-            landmarkName = "sendingPathAudioTransferFile()"
+            landmarkName = "btnSendVoicePressed()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -746,12 +746,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "chatXMPPdemo/Controllers/XMPPSendMessageViewController.swift"
-            timestampString = "542153130.799022"
+            timestampString = "542213892.109051"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "200"
             endingLineNumber = "200"
-            landmarkName = "xmppIncomingFileTransfer(_:didReceiveSIOffer:)"
+            landmarkName = "setupInconmingFileTransfer()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1002,7 +1002,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "chatXMPPdemo/Controllers/XMPPSendMessageViewController.swift"
-            timestampString = "542153130.799574"
+            timestampString = "542213892.109254"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "158"
@@ -1018,7 +1018,7 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "chatXMPPdemo/Controllers/XMPPSendMessageViewController.swift"
-            timestampString = "542153130.799801"
+            timestampString = "542213892.1092941"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "161"
