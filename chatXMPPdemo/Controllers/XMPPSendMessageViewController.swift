@@ -21,30 +21,15 @@ class XMPPSendMessageViewController: UIViewController {
     var userJID = ""
     var passwordJID = ""
     
-    let xmppRosterStorage = XMPPRosterCoreDataStorage()
-    var xmppRoster: XMPPRoster!
-    var stream: XMPPStream!
-    var xmppIncomingFileTransfer: XMPPIncomingFileTransfer!
-    var fileTransfer: XMPPOutgoingFileTransfer!
+    var xmppOutgoingFileTransfer: XMPPOutgoingFileTransfer!
 
     var arrayUser: NSMutableArray = []
-    
     var audioRecorder: AVAudioRecorder!
     var isRecording = false
     var nameFile = ""
-    var status = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        xmppRoster = XMPPRoster(rosterStorage: xmppRosterStorage)
-
-        stream = AppDelegate.sharedInstance.setupXMPP()
-        stream.myJID = XMPPJID(string: userJID, resource: "mobile")
-        stream.addDelegate(self, delegateQueue: DispatchQueue.main)
-        connectServer()
-
-        xmppRoster.activate(stream)
 
         AudioManager.sharedInstance.setup()
 
@@ -56,75 +41,53 @@ class XMPPSendMessageViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
     }
-    
-    func connectServer() {
-        if !stream.isConnected() {
+
+    func validateAccount() {
+        
+        guard AppDelegate.sharedInstance.xmppStream.isConnected() else {
             
             do {
-                try stream.connect(withTimeout: XMPPStreamTimeoutNone)
-                
-            } catch let fecthErrpr as NSError {
-                print("Ocurrio un error en la conexion", fecthErrpr.description)
+                try AppDelegate.sharedInstance.xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)
+            } catch let error as NSError {
+                fatalError("Ocurrio un error en la conexion: " + error.description)
             }
+            return
         }
+        
+        guard AppDelegate.sharedInstance.xmppStream.isAuthenticated() else {
+            print("Ocurrio un error en la autenticacion")
+            return
+        }
+        
     }
-
+    
     @IBAction func btnSendMessagePressed() {
         
-//        guard AppDelegate.sharedInstance.xmppStream.isConnected() else {
-//
-//            do {
-//                try AppDelegate.sharedInstance.xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)
-//            } catch let error as NSError {
-//                fatalError("Ocurrio un error en la conexion: " + error.description)
-//            }
-//            return
-//        }
-//
-//        guard AppDelegate.sharedInstance.xmppStream.isAuthenticated() else {
-//            fatalError("Ocurrio un error en autenticacion")
-//            return
-//        }
-//
-//        let senderJID = XMPPJID(string: txtRecipient.text! + "@example.com")
-//        let msg = XMPPMessage(type: "chat", to: senderJID)!
-//
-//        msg.addBody(txtMessage.text!)
-//        stream.send(msg)
-//
-//        txtRecipient.text = ""
-//        txtMessage.text = ""
-//        txtRecipient.resignFirstResponder()
+        validateAccount()
         
-        if !stream.isConnected() {
-
-            do {
-                try stream.connect(withTimeout: XMPPStreamTimeoutNone)
-
-            } catch let fecthErrpr as NSError {
-                print("Ocurrio un error en la conexion", fecthErrpr.description)
-            }
-        } else {
-
-            print("Esta conectado el usuario")
+        if txtRecipient.text! != "" && txtMessage.text! != "" {
+            
             let senderJID = XMPPJID(string: txtRecipient.text! + "@example.com")
-            let msg = XMPPMessage(type: "chat", to: senderJID)!
-
-            msg.addBody(txtMessage.text!)
-            stream.send(msg)
-
+            let message = XMPPMessage(type: "chat", to: senderJID)!
+            
+            message.addBody(txtMessage.text!)
+            AppDelegate.sharedInstance.xmppStream.addDelegate(self, delegateQueue: DispatchQueue.main)
+            AppDelegate.sharedInstance.xmppStream.send(message)
+            
             txtRecipient.text = ""
             txtMessage.text = ""
-            txtRecipient.resignFirstResponder()
-
         }
+        
+        txtRecipient.resignFirstResponder()
+
     }
     
     @IBAction func btnVoiceRecoderPressed() {
-//        print("TAB 1")
         
+        validateAccount()
+
         if txtRecipient.text != "" && isRecording == false {
-//            print("Empezar a grabar")
+            
             nameFile = "Audio_" + UUID().uuidString + ".m4a"
             AudioManager.sharedInstance.startRecording(fileName: nameFile)
             isRecording = true
@@ -136,7 +99,7 @@ class XMPPSendMessageViewController: UIViewController {
     @IBAction func btnSendVoicePressed() {
         
         if isRecording {
-//            print("Parar grabaradora")
+            
             AudioManager.sharedInstance.finishRecording()
             isRecording = false
             btnVoiceSend.backgroundColor = #colorLiteral(red: 0.4211294055, green: 0.7796598077, blue: 0.9402769208, alpha: 1)
@@ -151,85 +114,35 @@ class XMPPSendMessageViewController: UIViewController {
         
         //example: let nameFile = "Audio_" + UUID().uuidString + ".m4a"
         let fullPath = URL(fileURLWithPath: AudioManager.sharedInstance.searchDocumentsDirectory()).appendingPathComponent(nameFile)
-
-        if !stream.isConnected() {
-            
-            do {
-                try stream.connect(withTimeout: XMPPStreamTimeoutNone)
-                
-            } catch let fecthErrpr as NSError {
-                print("Ocurrio un error en la conexion", fecthErrpr.description)
-            }
-        } else {
-            
-            print("Esta conectado el usuario - AUDIO DE VOZ")
-            setupInconmingFileTransfer()
-            
-            if !(fileTransfer != nil){
-                fileTransfer = XMPPOutgoingFileTransfer(dispatchQueue: DispatchQueue.main)
-                fileTransfer?.activate(stream)
-                fileTransfer?.disableDirectTransfers = false
-                fileTransfer?.disableIBB = false
-                fileTransfer?.disableSOCKS5 = false
-                fileTransfer?.addDelegate(self, delegateQueue: DispatchQueue.main)
-            }
-            
-            do {
-                
-                let dataAudio = try Data(contentsOf: fullPath)
-                let recipientJID = XMPPJID(string: txtRecipient.text! + "@example.com", resource: "mobile")
-                fileTransfer?.blockSize = gl_int32_t(dataAudio.hashValue)
-                print(dataAudio, nameFile, recipientJID!)
-                try fileTransfer?.send(dataAudio, named: nameFile, toRecipient: recipientJID, description: "AUDIO")
-                
-            } catch let error {
-                fatalError(error.localizedDescription)
-            }
-            
-            txtRecipient.text = ""
-        }
-    }
-    
-    func setupInconmingFileTransfer() {
         
-        xmppIncomingFileTransfer = XMPPIncomingFileTransfer()
-        xmppIncomingFileTransfer?.disableDirectTransfers = false
-        xmppIncomingFileTransfer?.disableIBB = false
-        xmppIncomingFileTransfer?.disableSOCKS5 = false
-        xmppIncomingFileTransfer?.activate(stream)
-        xmppIncomingFileTransfer?.addDelegate(self, delegateQueue: DispatchQueue.main)
-    
+        if !(xmppOutgoingFileTransfer != nil){
+            
+            xmppOutgoingFileTransfer = XMPPOutgoingFileTransfer(dispatchQueue: DispatchQueue.main)
+            xmppOutgoingFileTransfer.activate(AppDelegate.sharedInstance.xmppStream)
+            xmppOutgoingFileTransfer.disableDirectTransfers = false
+            xmppOutgoingFileTransfer.disableIBB = false
+            xmppOutgoingFileTransfer.disableSOCKS5 = false
+            xmppOutgoingFileTransfer.addDelegate(self, delegateQueue: DispatchQueue.main)
+        }
+        
+        do {
+            
+            let dataAudio = try Data(contentsOf: fullPath)
+            let recipientJID = XMPPJID(string: txtRecipient.text! + "@example.com", resource: "mobile")
+            xmppOutgoingFileTransfer?.blockSize = gl_int32_t(dataAudio.hashValue)
+            print(dataAudio, nameFile, recipientJID!, xmppOutgoingFileTransfer.blockSize)
+            try xmppOutgoingFileTransfer.send(dataAudio, named: nameFile, toRecipient: recipientJID, description: "AUDIO")
+            
+        } catch let error {
+            fatalError(error.localizedDescription)
+        }
+        
+        txtRecipient.text = ""
     }
-
+    
 }
 
-extension XMPPSendMessageViewController: XMPPIncomingFileTransferDelegate, XMPPOutgoingFileTransferDelegate {
-    
-    //DELEGATE INCOMING
-    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer!, didFailWithError error: Error!) {
-        print("Incoming file transfer failed with error: ", error)
-    }
-    
-    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer!, didReceiveSIOffer offer: XMPPIQ!) {
-        
-//        if status == true {
-//
-//            fileTransfer?.deactivate()
-//            fileTransfer = nil
-//        }
-//
-//        status = true
-        print(xmppIncomingFileTransfer?.autoAcceptFileTransfers as Any, "STATUS DE FILE")
-//        sender.autoAcceptFileTransfers = true
-        print("Incoming file transfer did receive SI offer. Accepting...", offer)
-        sender.acceptSIOffer(offer)
-        xmppIncomingFileTransfer?.deactivate()
-        fileTransfer?.deactivate()
-    }
-    
-    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer!, didSucceedWith data: Data!, named name: String!) {
-        print("Incoming file transfer did succeed.", data, name)
-    }
+extension XMPPSendMessageViewController: /*XMPPIncomingFileTransferDelegate, */XMPPOutgoingFileTransferDelegate {
     
     //DELEGATE OUTGOING
     func xmppOutgoingFileTransfer(_ sender: XMPPOutgoingFileTransfer!, didFailWithError error: Error!) {
@@ -239,48 +152,14 @@ extension XMPPSendMessageViewController: XMPPIncomingFileTransferDelegate, XMPPO
     func xmppOutgoingFileTransferDidSucceed(_ sender: XMPPOutgoingFileTransfer!) {
         print("File transfer successful.", sender)
     }
-    
-//    func turnSocket(_ sender: TURNSocket!, didSucceed socket: GCDAsyncSocket!) {
-//        print(socket)
-//    }
-//
-//    func turnSocketDidFail(_ sender: TURNSocket!) {
-//        print("TURN Connection failed!")
-//        print(sender)
-//    }
 }
 
 extension XMPPSendMessageViewController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream!, willReceive iq: XMPPIQ!) -> XMPPIQ! {
-//        print("Se desactiva el FILTE TRANSFER")
 
-//        if status == true {
-//            
-//            fileTransfer?.deactivate()
-//            fileTransfer = nil
-//        }
-        
         print("willReceive")
-//        print(iq)
         return iq
-    }
-    
-    func xmppStreamDidConnect(_ sender: XMPPStream!) {
-        print("Connected")
-        
-        do {
-            try sender.authenticate(withPassword: passwordJID)
-        } catch {
-            print("catch")
-        }
-        
-    }
-    
-    func xmppStreamDidAuthenticate(_ sender: XMPPStream!) {
-        print("Authenticate")
-        sender.send(XMPPPresence())
-        
     }
     
     func xmppStream(_ sender: XMPPStream!, socketDidConnect socket: GCDAsyncSocket!) {
@@ -293,8 +172,6 @@ extension XMPPSendMessageViewController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream!, willSend iq: XMPPIQ!) -> XMPPIQ! {
         print("willSend")
-//        print(iq)
-        
         
         return iq
     }
@@ -312,48 +189,36 @@ extension XMPPSendMessageViewController: XMPPStreamDelegate {
     
     func xmppStream(_ sender: XMPPStream!, didReceive iq: XMPPIQ!) -> Bool {
         print("didReceive - RECIBE EL XML DEL DESTINATARIO \(txtRecipient.text!)")
-        
-//        let xmp = XMPPIQ(xmlString: iq.xmlString)
-//        xmp.
         print(iq)
         return true
     }
     
     func xmppStream(_ sender: XMPPStream!, didReceive message: XMPPMessage!) {
+        
         print("didReceive message")
         print(message)
-        var user: StructUser = StructUser()
-        user.sender = String(describing: message.from()!).replacingOccurrences(of: "/mobile", with: "")
-        user.recipient = String(describing: message.to()!).replacingOccurrences(of: "/mobile", with: "")
-        user.message = String(describing: message.body()!)
         
-        print(user.sender, user.recipient, user.message)
-
-        arrayUser.add(user)
+        validateAccount()
         
-        self.tableViewMessage.reloadData()
+        if AppDelegate.sharedInstance.xmppStream.myJID == message.from() {
+            
+            var user: StructUser = StructUser()
+            user.sender = String(describing: message.from()!).replacingOccurrences(of: "/mobile", with: "")
+            user.recipient = String(describing: message.to()!).replacingOccurrences(of: "/mobile", with: "")
+            user.message = String(describing: message.body()!)
+            
+            print(user.sender, user.recipient, user.message)
+            
+            arrayUser.add(user)
+            
+            self.tableViewMessage.reloadData()
+            
+        }
+        
     }
 
     func xmppStream(_ sender: XMPPStream!, didReceive presence: XMPPPresence!) {
         print(presence)
-
-        let presentType = presence.type()
-        let username = sender.myJID.user
-        let presentFromUser = presence.from().user
-
-        print(presentType!, username!, presentFromUser!)
-
-//        if presentFromUser != username {
-//
-//            if presentType == "available" {
-//
-//                print("available")
-//            }
-//        } else if presentType == "subscribe" {
-//            xmppRoster.subscribePresence(toUser: presence.from())
-//        } else {
-//            print("precent type: ", presentType)
-//        }
     }
     
     func xmppStream(_ sender: XMPPStream!, didSend message: XMPPMessage!) {
@@ -397,10 +262,6 @@ extension XMPPSendMessageViewController: UITableViewDelegate, UITableViewDataSou
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
-//        guard let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell", for: indexPath) else {
-//            print("Error cell")
-//        }
 
         let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell", for: indexPath) as! XMPPMessageCell
         configureCell(cell: cell, indexPath: indexPath)

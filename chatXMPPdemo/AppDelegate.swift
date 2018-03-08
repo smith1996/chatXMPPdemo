@@ -31,16 +31,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-    func setupXMPP() -> XMPPStream{
-
-        let stream = XMPPStream()!
-        
-        stream.hostName = "192.168.1.159"
-        stream.hostPort = 5222
-        stream.startTLSPolicy = .allowed
-        
-        return stream
-    }
+//    func setupXMPP() -> XMPPStream{
+//
+//        let stream = XMPPStream()!
+//
+//        stream.hostName = "192.168.1.159"
+//        stream.hostPort = 5222
+//        stream.startTLSPolicy = .allowed
+//
+//        return stream
+//    }
     
     func prepareStreamAndLogInWithJID(jid:XMPPJID, password:String){
         
@@ -73,9 +73,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
     
-//    deinit {
-//        self.tearDownStream()
-//    }
+    deinit {
+        self.tearDownStream()
+    }
     
     func tearDownStream(){
         
@@ -114,55 +114,58 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
-//extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
-//    
-//    func xmppStreamDidConnect(_ sender: XMPPStream) {
-//        print("Connected successfully.")
-//        print("Logging in as " + sender.myJID.full())
-//        do {
-//            try xmppStream.authenticate(withPassword: password)
-//        } catch let error as NSError  {
-//            fatalError("Error authenticating: " + error.debugDescription);
-//        }
-//    }
-//    
-//    func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
-//        print("Authenticated successfully.")
-//        let presence = XMPPPresence()
-//        xmppStream.send(presence)
-//
-//    }
-//    
-//    func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
-//        print("Stream disconnected with error: " + error.debugDescription)
-//    }
-//    
-//    func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: XMLElement) {
-//        print("Authentication failed with error: " + error.debugDescription)
-//    }
-//    
-//    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didFailWithError error: Error?) {
-//        print("Incoming file transfer failed with error: " + error.debugDescription)
-//    }
-//    
-//    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
-//        print("Incoming file transfer did receive SI offer. Accepting...")
-//        sender.acceptSIOffer(offer)
-//    }
-//    
-//    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didSucceedWith data: Data, named name: String) {
-//        
-//        print("Incoming file transfer did succeed.")
-//        let paths: [Any] = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
-//        let fullPath = URL(fileURLWithPath: paths.last as! String).appendingPathComponent(name)
-//        do {
-//            try
-//                data.write(to: fullPath, options: [])
-//        } catch let error as NSError  {
-//            fatalError("Could not sendFile \(error), \(error.userInfo)")
-//        }
-//        print("Data was written to the path: " + fullPath.absoluteString)
-//    }
-//    
-//}
+extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
+    
+    //DELEGATE STREAM
+    func xmppStreamDidConnect(_ sender: XMPPStream) {
+        print("Connected successfully.")
+        print("Logging in as " + sender.myJID.full())
+        do {
+            try xmppStream.authenticate(withPassword: password)
+        } catch let error as NSError  {
+            fatalError("Error authenticating: " + error.debugDescription);
+        }
+    }
+    
+    func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
+        print("Authenticated successfully.")
+        let presence = XMPPPresence()
+        xmppStream.send(presence)
+
+    }
+    
+    func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
+        print("Stream disconnected with error: " + error.debugDescription)
+    }
+    
+    func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: XMLElement) {
+        print("Authentication failed with error: " + error.debugDescription)
+    }
+    
+    
+    //DELEGATE INCOMINGFILETRANSFER
+    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didFailWithError error: Error?) {
+        print("Incoming file transfer failed with error: " + error.debugDescription)
+    }
+    
+    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
+        print("Incoming file transfer did receive SI offer. Accepting...")
+        sender.acceptSIOffer(offer)
+    }
+    
+    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didSucceedWith data: Data, named name: String) {
+        
+        print("Incoming file transfer did succeed.")
+        let paths: [Any] = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let fullPath = URL(fileURLWithPath: paths.last as! String).appendingPathComponent(name)
+        do {
+            try
+                data.write(to: fullPath, options: [])
+        } catch let error as NSError  {
+            fatalError("Could not sendFile \(error), \(error.userInfo)")
+        }
+        print("Data was written to the path: " + fullPath.absoluteString)
+    }
+    
+}
 

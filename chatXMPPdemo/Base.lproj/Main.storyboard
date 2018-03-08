@@ -71,7 +71,7 @@
                                             <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                         </state>
                                         <connections>
-                                            <action selector="btnLoginPressed" destination="BYZ-38-t0r" eventType="touchUpInside" id="O6B-cv-kvq"/>
+                                            <segue destination="xft-fk-uI1" kind="show" id="os7-1f-CeV"/>
                                         </connections>
                                     </button>
                                 </subviews>
