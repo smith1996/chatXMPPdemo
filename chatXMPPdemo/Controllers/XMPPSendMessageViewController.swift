@@ -38,16 +38,16 @@ class XMPPSendMessageViewController: UIViewController {
         super.viewDidLoad()
         
         xmppRoster = XMPPRoster(rosterStorage: xmppRosterStorage)
-        
+
         stream = AppDelegate.sharedInstance.setupXMPP()
         stream.myJID = XMPPJID(string: userJID, resource: "mobile")
         stream.addDelegate(self, delegateQueue: DispatchQueue.main)
         connectServer()
-        
+
         xmppRoster.activate(stream)
-        
+
         AudioManager.sharedInstance.setup()
-    
+
         tableViewMessage.delegate = self
         tableViewMessage.dataSource = self
         
@@ -71,23 +71,48 @@ class XMPPSendMessageViewController: UIViewController {
 
     @IBAction func btnSendMessagePressed() {
         
+//        guard AppDelegate.sharedInstance.xmppStream.isConnected() else {
+//
+//            do {
+//                try AppDelegate.sharedInstance.xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)
+//            } catch let error as NSError {
+//                fatalError("Ocurrio un error en la conexion: " + error.description)
+//            }
+//            return
+//        }
+//
+//        guard AppDelegate.sharedInstance.xmppStream.isAuthenticated() else {
+//            fatalError("Ocurrio un error en autenticacion")
+//            return
+//        }
+//
+//        let senderJID = XMPPJID(string: txtRecipient.text! + "@example.com")
+//        let msg = XMPPMessage(type: "chat", to: senderJID)!
+//
+//        msg.addBody(txtMessage.text!)
+//        stream.send(msg)
+//
+//        txtRecipient.text = ""
+//        txtMessage.text = ""
+//        txtRecipient.resignFirstResponder()
+        
         if !stream.isConnected() {
-            
+
             do {
                 try stream.connect(withTimeout: XMPPStreamTimeoutNone)
-                
+
             } catch let fecthErrpr as NSError {
                 print("Ocurrio un error en la conexion", fecthErrpr.description)
             }
         } else {
-            
+
             print("Esta conectado el usuario")
             let senderJID = XMPPJID(string: txtRecipient.text! + "@example.com")
             let msg = XMPPMessage(type: "chat", to: senderJID)!
-             
+
             msg.addBody(txtMessage.text!)
             stream.send(msg)
-            
+
             txtRecipient.text = ""
             txtMessage.text = ""
             txtRecipient.resignFirstResponder()

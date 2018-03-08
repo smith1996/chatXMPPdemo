@@ -19,16 +19,16 @@ class XMPPLoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-//        stream = AppDelegate.sharedInstance.setupXMPP()
+        stream = AppDelegate.sharedInstance.setupXMPP()
         
     }
 
     @IBAction func btnLoginPressed() {
 
-//        stream.myJID = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")
-//        stream.addDelegate(self, delegateQueue: DispatchQueue.main)
+        stream.myJID = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")
+        stream.addDelegate(self, delegateQueue: DispatchQueue.main)
 
-//        connectXMPP()
+        connectXMPP()
         
     }
 
@@ -54,13 +54,13 @@ class XMPPLoginViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-
-        let username = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")!
-        let password = txtPasswordJID.text!
-        AppDelegate.sharedInstance.prepareStreamAndLogInWithJID(jid: username, password: password)
-        
-    }
+//    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+//
+//        let username = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")!
+//        let password = txtPasswordJID.text!
+//        AppDelegate.sharedInstance.prepareStreamAndLogInWithJID(jid: username, password: password)
+//
+//    }
 }
 
 extension XMPPLoginViewController: XMPPStreamDelegate {
