@@ -74,6 +74,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     deinit {
+        print("----------------------- PRINTEO DE INIT - REMOVER TODO LOS OBJECTOS DE XMPP -----------------------")
         self.tearDownStream()
     }
     
