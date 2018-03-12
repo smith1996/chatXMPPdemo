@@ -60,6 +60,9 @@
 		7DC732072047009D00A27C3A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7DC73216204707C000A27C3A /* XMPPSendMessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPSendMessageViewController.swift; sourceTree = "<group>"; };
 		7DC732182047087A00A27C3A /* XMPPMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMPPMessageCell.swift; sourceTree = "<group>"; };
+		7DD0452A2051AB34006454E4 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		7DD0452C2051AB43006454E4 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		7DD0452E2051AE06006454E4 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		9F172BBF41F11CBCB0B2A106 /* Pods-chatXMPPdemoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-chatXMPPdemoTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-chatXMPPdemoTests/Pods-chatXMPPdemoTests.debug.xcconfig"; sourceTree = "<group>"; };
 		A293BA9535AE5ED2F6CA2815 /* Pods_chatXMPPdemo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_chatXMPPdemo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3D32612539635B80F4BEF05 /* Pods_chatXMPPdemoTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_chatXMPPdemoTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,6 +103,9 @@
 		5A357B1D5A866EF9FBAB3D8C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7DD0452E2051AE06006454E4 /* libresolv.tbd */,
+				7DD0452C2051AB43006454E4 /* Security.framework */,
+				7DD0452A2051AB34006454E4 /* CFNetwork.framework */,
 				A293BA9535AE5ED2F6CA2815 /* Pods_chatXMPPdemo.framework */,
 				A3D32612539635B80F4BEF05 /* Pods_chatXMPPdemoTests.framework */,
 				B393C4D86D0B4D6D2A4158D3 /* Pods_chatXMPPdemoUITests.framework */,

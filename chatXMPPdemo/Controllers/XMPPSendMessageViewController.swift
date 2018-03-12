@@ -36,6 +36,9 @@ class XMPPSendMessageViewController: UIViewController {
         tableViewMessage.delegate = self
         tableViewMessage.dataSource = self
         
+        print(AppDelegate.sharedInstance.xmppStream.isConnecting(), "ESTADO DE CONNECTING DEL STREAM")
+        print(AppDelegate.sharedInstance.xmppStream.isAuthenticating(), "ESTADO DE AUTHENTICATING DEL STREAM")
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -58,6 +61,9 @@ class XMPPSendMessageViewController: UIViewController {
             print("Ocurrio un error en la autenticacion")
             return
         }
+        
+        print(AppDelegate.sharedInstance.xmppStream.isConnecting(), "ESTADO DE CONNECTING DEL STREAM")
+        print(AppDelegate.sharedInstance.xmppStream.isAuthenticating(), "ESTADO DE AUTHENTICATING DEL STREAM")
         
     }
     
@@ -115,24 +121,26 @@ class XMPPSendMessageViewController: UIViewController {
         //example: let nameFile = "Audio_" + UUID().uuidString + ".m4a"
         let fullPath = URL(fileURLWithPath: AudioManager.sharedInstance.searchDocumentsDirectory()).appendingPathComponent(nameFile)
         
-        if !(xmppOutgoingFileTransfer != nil){
-            
-            xmppOutgoingFileTransfer = XMPPOutgoingFileTransfer(dispatchQueue: DispatchQueue.main)
-            xmppOutgoingFileTransfer.activate(AppDelegate.sharedInstance.xmppStream)
-            xmppOutgoingFileTransfer.disableDirectTransfers = false
-            xmppOutgoingFileTransfer.disableIBB = false
-            xmppOutgoingFileTransfer.disableSOCKS5 = false
-            xmppOutgoingFileTransfer.addDelegate(self, delegateQueue: DispatchQueue.main)
+        if (xmppOutgoingFileTransfer != nil){
+            xmppOutgoingFileTransfer.deactivate()
+            xmppOutgoingFileTransfer = nil
         }
         
+        xmppOutgoingFileTransfer = XMPPOutgoingFileTransfer(dispatchQueue: DispatchQueue.main)
+        xmppOutgoingFileTransfer.activate(AppDelegate.sharedInstance.xmppStream)
+        xmppOutgoingFileTransfer.disableDirectTransfers = false
+        xmppOutgoingFileTransfer.disableIBB = false
+        xmppOutgoingFileTransfer.disableSOCKS5 = false
+        xmppOutgoingFileTransfer.addDelegate(self, delegateQueue: DispatchQueue.main)
+        
         do {
-            
+
             let dataAudio = try Data(contentsOf: fullPath)
             let recipientJID = XMPPJID(string: txtRecipient.text! + "@example.com", resource: "mobile")
-            xmppOutgoingFileTransfer?.blockSize = gl_int32_t(dataAudio.hashValue)
-            print(dataAudio, nameFile, recipientJID!, xmppOutgoingFileTransfer.blockSize)
+            xmppOutgoingFileTransfer.blockSize = gl_int32_t(dataAudio.hashValue)
+            print(dataAudio, nameFile, recipientJID!)
             try xmppOutgoingFileTransfer.send(dataAudio, named: nameFile, toRecipient: recipientJID, description: "AUDIO")
-            
+
         } catch let error {
             fatalError(error.localizedDescription)
         }
@@ -171,6 +179,7 @@ extension XMPPSendMessageViewController: XMPPStreamDelegate {
     }
     
     func xmppStream(_ sender: XMPPStream!, willSend iq: XMPPIQ!) -> XMPPIQ! {
+        
         print("willSend")
         
         return iq
@@ -200,7 +209,7 @@ extension XMPPSendMessageViewController: XMPPStreamDelegate {
         
         validateAccount()
         
-        if AppDelegate.sharedInstance.xmppStream.myJID == message.from() {
+        if AppDelegate.sharedInstance.xmppStream.myJID == message.to() {
             
             var user: StructUser = StructUser()
             user.sender = String(describing: message.from()!).replacingOccurrences(of: "/mobile", with: "")
@@ -231,7 +240,6 @@ extension XMPPSendMessageViewController: XMPPStreamDelegate {
         
         print("didSend - ENVIA EL XML AL DESTINATARIO")
         print(iq)
-        
     }
     
     func xmppStream(_ sender: XMPPStream!, didFailToSend iq: XMPPIQ!, error: Error!) {

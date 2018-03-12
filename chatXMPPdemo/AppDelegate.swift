@@ -31,30 +31,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-//    func setupXMPP() -> XMPPStream{
-//
-//        let stream = XMPPStream()!
-//
-//        stream.hostName = "192.168.1.159"
-//        stream.hostPort = 5222
-//        stream.startTLSPolicy = .allowed
-//
-//        return stream
-//    }
-    
     func prepareStreamAndLogInWithJID(jid:XMPPJID, password:String){
         
         print("Preparing the stream and logging in as " + jid.full())
         xmppStream = XMPPStream()
-        xmppStream.myJID = jid
         xmppStream.hostName = "192.168.1.159"
         xmppStream.hostPort = 5222
-        
+        xmppStream.startTLSPolicy = .allowed
+        xmppStream.myJID = jid
+
+
         xmppRosterStorage = XMPPRosterMemoryStorage()
         xmppRoster = XMPPRoster(rosterStorage: xmppRosterStorage)
         xmppRoster.autoFetchRoster = true
         
         xmppIncomingFileTransfer = XMPPIncomingFileTransfer()
+        xmppIncomingFileTransfer.disableIBB = false
+        xmppIncomingFileTransfer.disableSOCKS5 = false
         
         // Activate all modules
         xmppRoster.activate(xmppStream)
@@ -65,6 +58,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         xmppIncomingFileTransfer.addDelegate(self, delegateQueue: DispatchQueue.main)
         
         self.password = password
+        connect()
+    }
+    
+    func connect() {
+        
+        //TRUE = cuando esta desconectado && FALSE = esta conectado
+        guard xmppStream.isDisconnected() else {
+            print("La sesion esta desconectado")
+            return
+        }
+        
         do {
             try xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)//30
             
@@ -128,30 +132,47 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
         }
     }
     
+    func xmppStreamDidRegister(_ sender: XMPPStream!) {
+        print("registered !!")
+        
+    }
+    
     func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
         print("Authenticated successfully.")
         let presence = XMPPPresence()
+//        let domain = xmppStream.myJID.domain
+//
+//        if domain == "@example.com" {
+//            let priority = DDXMLElement.element(withName: "", stringValue: "24") as! DDXMLElement
+//            presence?.addChild(priority)
+//        }
         xmppStream.send(presence)
 
+        print(xmppStream.isConnecting(), "ESTADO DE CONNECTING DEL STREAM")
+        print(xmppStream.isAuthenticating(), "ESTADO DE AUTHENTICATING DEL STREAM")
     }
     
     func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
-        print("Stream disconnected with error: " + error.debugDescription)
+        fatalError("Stream disconnected with error: " + error.debugDescription)
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: XMLElement) {
-        print("Authentication failed with error: " + error.debugDescription)
+        fatalError("Authentication failed with error: " + error.debugDescription)
     }
     
     
     //DELEGATE INCOMINGFILETRANSFER
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didFailWithError error: Error?) {
-        print("Incoming file transfer failed with error: " + error.debugDescription)
+        fatalError("Incoming file transfer failed with error: " + error.debugDescription)
     }
     
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
         print("Incoming file transfer did receive SI offer. Accepting...")
-        sender.acceptSIOffer(offer)
+//        sender.acceptSIOffer(offer)
+        sender.autoAcceptFileTransfers = true
+        let data = offer.parseData(offer.name)
+        
+        print(data?.base64EncodedString() as Any)
     }
     
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didSucceedWith data: Data, named name: String) {

@@ -59,9 +59,8 @@ class AudioManager {
             audioRecorder?.record()
             
         } catch let error {
-            
-            print(error.localizedDescription)
             finishRecording()
+            fatalError(error.localizedDescription)
         }
         
     }
