@@ -10,12 +10,18 @@ import UIKit
 import XMPPFramework
 import IQKeyboardManagerSwift
 
+protocol XMPPStreamCustomDelegate {
+    func didReceiveMessage(user: StructUser)
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     static let sharedInstance = AppDelegate()
     
     var window: UIWindow?
+    
+    var xmppStreamCustom: XMPPStreamCustomDelegate!
     
     var xmppStream:XMPPStream!
     var xmppRoster:XMPPRoster!
@@ -27,7 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         IQKeyboardManager.sharedManager().enable = true
-
+        
         return true
     }
     
@@ -47,7 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         xmppIncomingFileTransfer = XMPPIncomingFileTransfer()
         xmppIncomingFileTransfer.disableIBB = false
-        xmppIncomingFileTransfer.disableSOCKS5 = false
+        xmppIncomingFileTransfer.disableSOCKS5 = true
         
         // Activate all modules
         xmppRoster.activate(xmppStream)
@@ -140,16 +146,8 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
     func xmppStreamDidAuthenticate(_ sender: XMPPStream) {
         print("Authenticated successfully.")
         let presence = XMPPPresence()
-//        let domain = xmppStream.myJID.domain
-//
-//        if domain == "@example.com" {
-//            let priority = DDXMLElement.element(withName: "", stringValue: "24") as! DDXMLElement
-//            presence?.addChild(priority)
-//        }
-        xmppStream.send(presence)
 
-        print(xmppStream.isConnecting(), "ESTADO DE CONNECTING DEL STREAM")
-        print(xmppStream.isAuthenticating(), "ESTADO DE AUTHENTICATING DEL STREAM")
+        xmppStream.send(presence)
     }
     
     func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
@@ -160,6 +158,31 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
         fatalError("Authentication failed with error: " + error.debugDescription)
     }
     
+    func xmppStream(_ sender: XMPPStream!, didReceive iq: XMPPIQ!) -> Bool {
+        print("didReceive - RECIBE EL XML DEL DESTINATARIO")
+        print(iq)
+        return true
+    }
+    
+    func xmppStream(_ sender: XMPPStream!, didReceive message: XMPPMessage!) {
+        
+        print("didReceive message")
+        print(message)
+
+        if xmppStream.myJID == message.to() {
+            
+            var user: StructUser = StructUser()
+            user.sender = String(describing: message.from()!).replacingOccurrences(of: "/mobile", with: "")
+            user.recipient = String(describing: message.to()!).replacingOccurrences(of: "/mobile", with: "")
+            user.message = String(describing: message.body()!)
+
+            print(user.sender, user.recipient, user.message)
+            
+            self.xmppStreamCustom.didReceiveMessage(user: user)
+            
+        }
+        
+    }
     
     //DELEGATE INCOMINGFILETRANSFER
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didFailWithError error: Error?) {
@@ -167,12 +190,8 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
     }
     
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
-        print("Incoming file transfer did receive SI offer. Accepting...")
-//        sender.acceptSIOffer(offer)
+        print("Incoming file transfer did receive SI offer. Accepting..." + " \n" + offer.prettyXMLString())
         sender.autoAcceptFileTransfers = true
-        let data = offer.parseData(offer.name)
-        
-        print(data?.base64EncodedString() as Any)
     }
     
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didSucceedWith data: Data, named name: String) {

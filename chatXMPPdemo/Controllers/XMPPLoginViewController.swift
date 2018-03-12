@@ -24,9 +24,13 @@ class XMPPLoginViewController: UIViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
 
-        let username = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")!
-        let password = txtPasswordJID.text!
-        AppDelegate.sharedInstance.prepareStreamAndLogInWithJID(jid: username, password: password)
+        if txtUserJID.text != "" && txtPasswordJID.text != "" {
+            
+            let username = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")!
+            let password = txtPasswordJID.text!
+            AppDelegate.sharedInstance.prepareStreamAndLogInWithJID(jid: username, password: password)
+        }
+        
     }
 }
 
