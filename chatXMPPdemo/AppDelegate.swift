@@ -22,6 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     static let sharedInstance = AppDelegate()
     
+    static let xmppUserDomain = "@localhost"
+    
     var window: UIWindow?
     
     var xmppStreamCustom: XMPPStreamCustomDelegate!
@@ -45,7 +47,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         print("Preparing the stream and logging in as " + jid.full())
         xmppStream = XMPPStream()
-        xmppStream.hostName = "192.168.1.159"
+        xmppStream.hostName = "192.168.1.238"
         xmppStream.hostPort = 5222
         xmppStream.startTLSPolicy = .allowed
         xmppStream.myJID = jid
@@ -56,7 +58,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         xmppRoster.autoFetchRoster = true
         
         xmppIncomingFileTransfer = XMPPIncomingFileTransfer()
-//        xmppIncomingFileTransfer.disableSOCKS5 = true
+        xmppIncomingFileTransfer.disableSOCKS5 = true
         
         // Activate all modules
         xmppRoster.activate(xmppStream)
@@ -83,7 +85,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             try xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)//30
             
         } catch let error as NSError {
-            fatalError("Error connecting: " + error.debugDescription)
+            print("Error connecting: " + error.debugDescription)
         }
     }
     
@@ -138,7 +140,7 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
         do {
             try xmppStream.authenticate(withPassword: password)
         } catch let error as NSError  {
-            fatalError("Error authenticating: " + error.debugDescription);
+            print("Error authenticating: " + error.debugDescription);
         }
     }
     
@@ -155,11 +157,11 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
     }
     
     func xmppStreamDidDisconnect(_ sender: XMPPStream, withError error: Error?) {
-        fatalError("Stream disconnected with error: " + error.debugDescription)
+        print("Stream disconnected with error: " + error.debugDescription)
     }
     
     func xmppStream(_ sender: XMPPStream, didNotAuthenticate error: XMLElement) {
-        fatalError("Authentication failed with error: " + error.debugDescription)
+        print("Authentication failed with error: " + error.debugDescription)
     }
     
 //    func xmppStream(_ sender: XMPPStream!, didReceive iq: XMPPIQ!) -> Bool {
@@ -190,7 +192,7 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
     
     //DELEGATE INCOMINGFILETRANSFER
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didFailWithError error: Error?) {
-        fatalError("Incoming file transfer failed with error: " + error.debugDescription)
+        print("Incoming file transfer failed with error: " + error.debugDescription)
     }
     
 //    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
@@ -209,6 +211,7 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
         let paths: [Any] = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let fullPath = URL(fileURLWithPath: paths.last as! String).appendingPathComponent(name)
         do {
+            print("fullpath -> "+fullPath.absoluteString)
             try
                 data.write(to: fullPath, options: [])
             do {
@@ -223,15 +226,15 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
                 /* iOS 10 and earlier require the following line:
                 player = try AVAudioPlayer(contentsOf: fullPath, fileTypeHint: AVFileType.m4a.rawValue) */
                 
-                guard let player = player else { return }
-                
-                player.play()
+//                guard let player = player else { return }
+//
+//                player.play()
                 
             } catch let error {
                 print(error.localizedDescription)
             }
         } catch let error as NSError  {
-            fatalError("Could not sendFile \(error), \(error.userInfo)")
+            print("Could not sendFile \(error), \(error.userInfo)")
         }
         print("Data was written to the path: " + fullPath.absoluteString)
     }

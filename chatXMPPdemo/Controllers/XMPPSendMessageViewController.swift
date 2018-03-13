@@ -48,7 +48,7 @@ class XMPPSendMessageViewController: UIViewController, XMPPStreamCustomDelegate,
             do {
                 try AppDelegate.sharedInstance.xmppStream.connect(withTimeout: XMPPStreamTimeoutNone)
             } catch let error as NSError {
-                fatalError("Ocurrio un error en la conexion: " + error.description)
+                print("Ocurrio un error en la conexion: " + error.description)
             }
             return
         }
@@ -63,7 +63,7 @@ class XMPPSendMessageViewController: UIViewController, XMPPStreamCustomDelegate,
         
         validateAccount()
         if txtRecipient.text! != "" && txtMessage.text! != "" {
-            let senderJID = XMPPJID(string: txtRecipient.text! + "@example.com")
+            let senderJID = XMPPJID(string: txtRecipient.text! + AppDelegate.xmppUserDomain)
             let message = XMPPMessage(type: "chat", to: senderJID)!
             
             message.addBody(txtMessage.text!)
@@ -100,7 +100,10 @@ class XMPPSendMessageViewController: UIViewController, XMPPStreamCustomDelegate,
     
     func sendingPathAudioTransferFile() {
         
-        let fullPath = URL(fileURLWithPath: AudioManager.sharedInstance.searchDocumentsDirectory()).appendingPathComponent(nameFile)
+//        let fullPath = URL(fileURLWithPath: AudioManager.sharedInstance.searchDocumentsDirectory()).appendingPathComponent(nameFile)
+//        let fullPath = URL(fileURLWithPath: "file:///Users/luisrios/Library/Developer/CoreSimulator/Devices/5ED8E83B-6B11-41CC-8F9C-523AD18E57A5/data/Containers/Data/Application/CB85162E-009F-421B-B6AF-6610CFE7D66F/Documents/Audio_2A94DAAC-0817-4722-A427-5A1F677C0C6F.m4a")
+        let fullPath = URL(fileURLWithPath: AudioManager.sharedInstance.searchDocumentsDirectory()).appendingPathComponent("Audio_17ad1379-004f-4616-a671-99e3854ae4d5.m4a")
+        print("fullpathO -> "+fullPath.absoluteString)
         
         if (xmppOutgoingFileTransfer != nil){
             xmppOutgoingFileTransfer.deactivate()
@@ -110,17 +113,17 @@ class XMPPSendMessageViewController: UIViewController, XMPPStreamCustomDelegate,
         xmppOutgoingFileTransfer = XMPPOutgoingFileTransfer(dispatchQueue: DispatchQueue.main)
         xmppOutgoingFileTransfer.activate(AppDelegate.sharedInstance.xmppStream)
 //        xmppOutgoingFileTransfer.disableIBB = false
-//        xmppOutgoingFileTransfer.disableSOCKS5 = true
+        xmppOutgoingFileTransfer.disableSOCKS5 = true
         xmppOutgoingFileTransfer.addDelegate(self, delegateQueue: DispatchQueue.main)
         
         do {
 
             let dataAudio = try Data(contentsOf: fullPath)
-            let recipientJID = XMPPJID(string: txtRecipient.text! + "@example.com", resource: "mobile")
+            let recipientJID = XMPPJID(string: txtRecipient.text! + AppDelegate.xmppUserDomain, resource: "mobile")
             try xmppOutgoingFileTransfer.send(dataAudio, named: nameFile, toRecipient: recipientJID, description: "AUDIO")
 
         } catch let error {
-            fatalError(error.localizedDescription)
+            print(error.localizedDescription)
         }
         
     }

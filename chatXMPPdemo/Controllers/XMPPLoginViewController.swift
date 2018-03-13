@@ -26,7 +26,7 @@ class XMPPLoginViewController: UIViewController {
 
         if txtUserJID.text != "" && txtPasswordJID.text != "" {
             
-            let username = XMPPJID(string: txtUserJID.text! + "@example.com", resource: "mobile")!
+            let username = XMPPJID(string: txtUserJID.text! + AppDelegate.xmppUserDomain, resource: "mobile")!
             let password = txtPasswordJID.text!
             AppDelegate.sharedInstance.prepareStreamAndLogInWithJID(jid: username, password: password)
         }
