@@ -9,6 +9,7 @@
 import UIKit
 import XMPPFramework
 import IQKeyboardManagerSwift
+import AVFoundation
 
 protocol XMPPStreamCustomDelegate {
     func didReceiveMessage(user: StructUser)
@@ -16,6 +17,8 @@ protocol XMPPStreamCustomDelegate {
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
+    
+    var player: AVAudioPlayer?
 
     static let sharedInstance = AppDelegate()
     
@@ -34,6 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         IQKeyboardManager.sharedManager().enable = true
         
+        DDLog.add(DDTTYLogger.sharedInstance, with: DDLogLevel.all)
         return true
     }
     
@@ -52,11 +56,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         xmppRoster.autoFetchRoster = true
         
         xmppIncomingFileTransfer = XMPPIncomingFileTransfer()
-        xmppIncomingFileTransfer.disableIBB = false
-        xmppIncomingFileTransfer.disableSOCKS5 = true
+//        xmppIncomingFileTransfer.disableSOCKS5 = true
         
         // Activate all modules
         xmppRoster.activate(xmppStream)
+//        xmppIncomingFileTransfer.disableSOCKS5 = true
         xmppIncomingFileTransfer.activate(xmppStream)
         
         // Add ourselves as delegate to necessary methods
@@ -158,11 +162,11 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
         fatalError("Authentication failed with error: " + error.debugDescription)
     }
     
-    func xmppStream(_ sender: XMPPStream!, didReceive iq: XMPPIQ!) -> Bool {
-        print("didReceive - RECIBE EL XML DEL DESTINATARIO")
-        print(iq)
-        return true
-    }
+//    func xmppStream(_ sender: XMPPStream!, didReceive iq: XMPPIQ!) -> Bool {
+//        print("didReceive - RECIBE EL XML DEL DESTINATARIO")
+//        print(iq)
+//        return true
+//    }
     
     func xmppStream(_ sender: XMPPStream!, didReceive message: XMPPMessage!) {
         
@@ -189,19 +193,43 @@ extension AppDelegate: XMPPStreamDelegate, XMPPIncomingFileTransferDelegate {
         fatalError("Incoming file transfer failed with error: " + error.debugDescription)
     }
     
-    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
-        print("Incoming file transfer did receive SI offer. Accepting..." + " \n" + offer.prettyXMLString())
-        sender.autoAcceptFileTransfers = true
+//    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didReceiveSIOffer offer: XMPPIQ) {
+//        print("Incoming file transfer did receive SI offer. Accepting..." + " \n" + offer.prettyXMLString())
+//        sender.autoAcceptFileTransfers = true
+//    }
+    
+    func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer!, didReceiveSIOffer offer: XMPPIQ!) {
+                print("Incoming file transfer did receive SI offer. Accepting..." + " \n" + offer.prettyXMLString())
+        sender.acceptSIOffer(offer)
     }
     
     func xmppIncomingFileTransfer(_ sender: XMPPIncomingFileTransfer, didSucceedWith data: Data, named name: String) {
-        
+
         print("Incoming file transfer did succeed.")
         let paths: [Any] = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let fullPath = URL(fileURLWithPath: paths.last as! String).appendingPathComponent(name)
         do {
             try
                 data.write(to: fullPath, options: [])
+            do {
+                try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
+                try AVAudioSession.sharedInstance().setActive(true)
+                
+                
+                
+                /* The following line is required for the player to work on iOS 11. Change the file type accordingly*/
+                player = try AVAudioPlayer(contentsOf: fullPath, fileTypeHint: AVFileType.m4a.rawValue)
+                
+                /* iOS 10 and earlier require the following line:
+                player = try AVAudioPlayer(contentsOf: fullPath, fileTypeHint: AVFileType.m4a.rawValue) */
+                
+                guard let player = player else { return }
+                
+                player.play()
+                
+            } catch let error {
+                print(error.localizedDescription)
+            }
         } catch let error as NSError  {
             fatalError("Could not sendFile \(error), \(error.userInfo)")
         }

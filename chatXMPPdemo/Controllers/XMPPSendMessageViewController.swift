@@ -109,8 +109,8 @@ class XMPPSendMessageViewController: UIViewController, XMPPStreamCustomDelegate,
         
         xmppOutgoingFileTransfer = XMPPOutgoingFileTransfer(dispatchQueue: DispatchQueue.main)
         xmppOutgoingFileTransfer.activate(AppDelegate.sharedInstance.xmppStream)
-        xmppOutgoingFileTransfer.disableIBB = false
-        xmppOutgoingFileTransfer.disableSOCKS5 = true
+//        xmppOutgoingFileTransfer.disableIBB = false
+//        xmppOutgoingFileTransfer.disableSOCKS5 = true
         xmppOutgoingFileTransfer.addDelegate(self, delegateQueue: DispatchQueue.main)
         
         do {
